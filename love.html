@@ -310,12 +310,12 @@
     }
 
     .answer-yes-bg{
-      background-image:url('https://media.giphy.com/media/a3IWyhkEC0p32/giphy.gif');
+      background-image:url('https://cdn.jsdelivr.net/gh/Suosha/Love/assets/giphy2.gif');
       background-color:transparent;
     }
 
     .answer-no-bg{
-      background-image:url('https://media.giphy.com/media/QBEhpJHrv7poQ/giphy.gif');
+      background-image:url('https://cdn.jsdelivr.net/gh/Suosha/Love/assets/giphy1.gif');
       background-color:transparent;
     }
 
@@ -1246,7 +1246,7 @@ class World {
         uSize: { value: 0.2 },
         uTex: {
           value: new THREE.TextureLoader().load(
-            "https://assets.codepen.io/74321/heart.png"
+            "https://cdn.jsdelivr.net/gh/Suosha/Love/assets/heart.png"
           )
         }
       },
@@ -1320,12 +1320,12 @@ class World {
   }
 
   async addModel() {
-    this.model = await this.loadObj("https://assets.codepen.io/74321/heart.glb");
+    this.model = await this.loadObj("https://cdn.jsdelivr.net/gh/Suosha/Love/assets/heart.glb");
     if (!this.model) return;
     this.model.scale.set(0.01, 0.01, 0.01);
     this.model.material = new THREE.MeshMatcapMaterial({
       matcap: this.textureLoader.load(
-        "https://assets.codepen.io/74321/3.png",
+        "https://cdn.jsdelivr.net/gh/Suosha/Love/assets/3.png",
         () => {
           gsap.to(this.model.scale, {
             x: 0.35,
@@ -1417,7 +1417,7 @@ class World {
         uSize: { value: 0.3 },
         uTex: {
           value: new THREE.TextureLoader().load(
-            "https://assets.codepen.io/74321/heart.png"
+            "https://cdn.jsdelivr.net/gh/Suosha/Love/assets/heart.png"
           )
         }
       },
@@ -1481,4 +1481,3 @@ class World {
   </script>
 </body>
 </html>
-
