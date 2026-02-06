@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>愿你成为我的心上人</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root{
+      color-scheme: dark;
+      --card-bg: transparent;
+      --card-border: rgba(255,255,255,.12);
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --focus: rgba(255,255,255,.86);
+      --primary1:#6d7cff;
+      --primary2:#9a62ff;
+      --danger1:#ff5ab6;
+      --danger2:#ff4661;
+    }
+
+    html, body{
+      background-color:#000;
+      color:#fff;
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
+      overflow:hidden;
+    }
+
+    body{
+      font-family:'Noto Sans SC','Lato',sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:var(--text);
+    }
+
+    #nCanvasRender{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      display:block;
+      z-index:0;
+      pointer-events:none;
+      background:#000;
+    }
+
+    #confettiCanvas{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      display:block;
+      z-index:2000;
+      pointer-events:none;
+    }
+
+    /* ================= Next Page (With Love) ================= */
+    #page2{
+      position:fixed;
+      inset:0;
+      overflow:hidden;
+      background:#16000a;
+      color:#ffdada;
+      display:none;
+      z-index:1500;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #page2 *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    #page2 .webgl{
+      position:fixed;
+      width:100vw;
+      height:100vh;
+      top:0;
+      left:0;
+      outline:none;
+    }
+
+    #page2::before{
+      content:"";
+      position:absolute;
+      display:none;
+      inset:1rem;
+      z-index:100;
+      pointer-events:none;
+    }
+
+    #page2 h1{
+      position:absolute;
+      top:10vh;
+      left:2.5rem;
+      right:1rem;
+      text-align:center;
+      font-weight:900;
+      font-size:max(1rem, 3vh);
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      z-index:120;
+      user-select:none;
+    }
+
+    #page2 button{
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      height:12vh;
+      width:12vh;
+      transform:translateY(2vh);
+      right:0;
+      margin:auto;
+      -webkit-appearance:none;
+      background:transparent;
+      color:inherit;
+      border:none;
+      cursor:pointer;
+      z-index:130;
+      opacity:1;
+      transition:opacity 200ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #page2 svg{ width:3.5vh; height:3.5vh; }
+
+    .container{
+      text-align:center;
+      position:relative;
+      z-index:10;
+      width:min(720px, 92vw);
+      background:var(--card-bg);
+      padding:clamp(22px, 4vw, 42px);
+      border-radius:22px;
+      backdrop-filter:none;
+      box-shadow:none;
+      border:none;
+      transition:opacity .5s ease;
+    }
+
+    h1{
+      font-size:clamp(28px, 4.4vw, 44px);
+      margin:0 0 14px 0;
+      letter-spacing:3px;
+      line-height:1.35;
+      text-shadow:0 10px 30px rgba(0,0,0,.45);
+    }
+
+    .subtitle{
+      margin:0 0 26px 0;
+      font-size:15px;
+      line-height:1.8;
+      color:var(--muted);
+      letter-spacing:.5px;
+    }
+
+    .btn-group{
+      display:flex;
+      justify-content:center;
+      gap:18px;
+      position:relative;
+      min-height:104px;
+      align-items:center;
+      width:100%;
+      max-width:600px;
+      margin:0 auto;
+      padding:14px 10px;
+    }
+
+    .btn{
+      --tx:0px;
+      --ty:0px;
+      --scale:1;
+      padding:16px 42px;
+      font-size:18px;
+      border:none;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+      outline:none;
+      letter-spacing:1.5px;
+      position:relative;
+      overflow:hidden;
+      transform:translate(var(--tx), var(--ty)) scale(var(--scale));
+      transition:
+        transform 220ms cubic-bezier(.2,.9,.2,1),
+        box-shadow 220ms ease,
+        filter 220ms ease,
+        opacity 220ms ease;
+      z-index:1;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .btn::before{
+      content:"";
+      position:absolute;
+      top:50%;
+      left:50%;
+      width:0;
+      height:0;
+      border-radius:50%;
+      background:rgba(255,255,255,.28);
+      transform:translate(-50%, -50%);
+      transition:width .6s, height .6s;
+    }
+
+    .btn:hover::before,
+    .btn:focus-visible::before{
+      width:320px;
+      height:320px;
+    }
+
+    .btn:focus-visible{
+      box-shadow:0 0 0 3px rgba(0,0,0,.35), 0 0 0 5px var(--focus);
+    }
+
+    .btn:hover{ filter:brightness(1.05); }
+    .btn:active{ --scale:.98; }
+
+    .btn-yes{
+      background:linear-gradient(135deg, var(--primary1) 0%, var(--primary2) 100%);
+      color:#fff;
+      box-shadow:0 10px 30px rgba(109,124,255,.45);
+    }
+
+    .btn-yes::after{
+      content:"";
+      position:absolute;
+      inset:-3px;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.28);
+      opacity:.75;
+      animation:pulseRing 2.4s ease-in-out infinite;
+      pointer-events:none;
+    }
+
+    .btn-yes:hover{ --scale:1.06; }
+
+    .btn-no{
+      background:linear-gradient(135deg, var(--danger1) 0%, var(--danger2) 100%);
+      color:#fff;
+      box-shadow:0 10px 30px rgba(255,70,97,.35);
+    }
+
+    .btn-no:hover{
+      --scale:1.03;
+      box-shadow:0 14px 38px rgba(255,70,97,.45);
+    }
+
+    .btn-no.disabled{
+      opacity:.25;
+      cursor:not-allowed;
+    }
+
+    @keyframes pulseRing{
+      0%,100%{ transform:scale(1); opacity:.55; }
+      50%{ transform:scale(1.08); opacity:.85; }
+    }
+
+    @keyframes shake{
+      0%,100%{ transform:translate(var(--tx), var(--ty)) scale(var(--scale)); }
+      15%,45%,75%{ transform:translate(calc(var(--tx) - 6px), var(--ty)) scale(var(--scale)); }
+      30%,60%,90%{ transform:translate(calc(var(--tx) + 6px), var(--ty)) scale(var(--scale)); }
+    }
+
+    .shake{ animation:shake .35s; }
+
+    .hint{
+      margin:6px auto 0 auto;
+      max-width:600px;
+      min-height:22px;
+      color:var(--muted);
+      font-size:13px;
+      letter-spacing:.4px;
+      line-height:1.7;
+      opacity:.95;
+    }
+
+    /* ================= 结果全屏 GIF 层 ================= */
+    .answer-layer{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100vw;
+      height:100vh;
+      z-index:999;
+      background-size:contain;
+      background-position:center;
+      background-repeat:no-repeat;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .8s ease-in-out;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .answer-yes-bg{
+      background-image:url('https://media.giphy.com/media/a3IWyhkEC0p32/giphy.gif');
+      background-color:transparent;
+    }
+
+    .answer-no-bg{
+      background-image:url('https://media.giphy.com/media/QBEhpJHrv7poQ/giphy.gif');
+      background-color:transparent;
+    }
+
+    .active-layer{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .answer-text{
+      background:rgba(255,255,255,.94);
+      color:#2a2a2a;
+      padding:22px 28px;
+      border-radius:18px;
+      font-size:clamp(18px, 3.2vw, 34px);
+      font-weight:900;
+      box-shadow:0 16px 48px rgba(0,0,0,.45);
+      opacity:0;
+      transition:transform 520ms ease, opacity 520ms ease;
+      max-width:min(720px, 88vw);
+      text-align:center;
+      word-wrap:break-word;
+      white-space:normal;
+      position:absolute;
+      bottom:15vh;
+      left:50%;
+      transform:translate(-50%, 18px);
+      letter-spacing:3px;
+      line-height:1.6;
+    }
+
+    .active-layer .answer-text{
+      transform:translate(-50%, 0px);
+      opacity:1;
+    }
+
+    .layer-actions{
+      position:absolute;
+      bottom:max(20px, env(safe-area-inset-bottom));
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      gap:10px;
+      opacity:0;
+      transition:opacity 520ms ease 420ms;
+    }
+
+    .active-layer .layer-actions{ opacity:1; }
+
+    .layer-btn{
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.34);
+      background:rgba(0,0,0,.35);
+      color:rgba(255,255,255,.92);
+      backdrop-filter:blur(8px);
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:1px;
+      transition:transform 160ms ease, background 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .layer-btn:hover{ transform:translateY(-1px); background:rgba(0,0,0,.42); }
+    .layer-btn:active{ transform:translateY(0px) scale(.98); }
+    .layer-btn:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(255,255,255,.85); }
+
+    @keyframes float{
+      0%,100%{ transform:translateY(0px); }
+      50%{ transform:translateY(-10px); }
+    }
+
+    @media (prefers-reduced-motion: no-preference){
+      .container{ animation:float 3s ease-in-out infinite; }
+    }
+
+    @media (max-width:520px){
+      .btn-group{ gap:12px; min-height:132px; flex-wrap:wrap; }
+      .btn{ width:min(240px, 86vw); padding:15px 22px; }
+      .answer-text{ letter-spacing:2px; bottom:18vh; }
+    }
+
+    .signature{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      font-size:.8em;
+      opacity:.7;
+      z-index:5;
+    }
+
+    .heart-icon{ color:#D8124B; }
+  </style>
+</head>
+<body>
+
+  <div id="page1">
+    <canvas id="nCanvasRender"></canvas>
+    <canvas id="confettiCanvas"></canvas>
+    <script>
+      // --- Canvas 背景（粒子球） ---
+      (function initCanvasBackground() {
+        window.__bgPaused = false;
+
+        const nCanvasRender = document.getElementById('nCanvasRender');
+        if (!nCanvasRender) return;
+
+        const ctxRender = nCanvasRender.getContext('2d', { alpha: false });
+        if (!ctxRender) return;
+
+        const PI = Math.PI;
+        const fnMax = Math.max;
+        const fnMin = Math.min;
+        const fnRnd = Math.random;
+        const fnRnd2 = () => 2.0 * fnRnd() - 1.0;
+        const fnCos = Math.cos;
+        const fnACos = Math.acos;
+        const fnSin = Math.sin;
+
+        const iRadiusSphere = 150;
+        let iProjSphereX = 0;
+        let iProjSphereY = 0;
+
+        const fMaxAX = 0.1;
+        const fMaxAY = 0.1;
+        const fMaxAZ = 0.1;
+        const fStartVX = 0.001;
+        const fStartVY = 0.001;
+        const fStartVZ = 0.001;
+
+        const settings = {
+          iFramesToRotate: 2000.0,
+          iPerspective: 250,
+          iNewParticlePerFrame: 10,
+          fGrowDuration: 200.0,
+          fWaitDuration: 50.0,
+          fShrinkDuration: 250.0,
+          aColor: [255, 128, 128],
+        };
+
+        if (window.innerWidth < 1000) settings.iNewParticlePerFrame = 5;
+        const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reducedMotion) settings.iNewParticlePerFrame = Math.max(2, Math.floor(settings.iNewParticlePerFrame / 2));
+
+        let fVX = (2.0 * PI) / settings.iFramesToRotate;
+        let fAngle = 0.0;
+        let fSinAngle = 0.0;
+        let fCosAngle = 1.0;
+
+        const oRender = { pFirst: null };
+        const oBuffer = { pFirst: null };
+
+        let w = 0;
+        let h = 0;
+        let dpr = 1;
+
+        function fnSetSize() {
+          dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+          w = window.innerWidth;
+          h = window.innerHeight;
+          nCanvasRender.width = Math.floor(w * dpr);
+          nCanvasRender.height = Math.floor(h * dpr);
+          ctxRender.setTransform(dpr, 0, 0, dpr, 0, 0);
+          iProjSphereX = w / 2;
+          iProjSphereY = h / 2;
+        }
+
+        window.addEventListener('resize', fnSetSize, { passive: true });
+        fnSetSize();
+
+        function fnSwapList(p, oSrc, oDst) {
+          if (p) {
+            if (oSrc.pFirst === p) {
+              oSrc.pFirst = p.pNext;
+              if (p.pNext) p.pNext.pPrev = null;
+            } else {
+              if (p.pPrev) p.pPrev.pNext = p.pNext;
+              if (p.pNext) p.pNext.pPrev = p.pPrev;
+            }
+          } else {
+            p = new Particle();
+          }
+
+          p.pNext = oDst.pFirst;
+          if (oDst.pFirst) oDst.pFirst.pPrev = p;
+          oDst.pFirst = p;
+          p.pPrev = null;
+          return p;
+        }
+
+        class Particle {
+          constructor() {
+            this.fX = 0.0;
+            this.fY = 0.0;
+            this.fZ = 0.0;
+            this.fVX = 0.0;
+            this.fVY = 0.0;
+            this.fVZ = 0.0;
+            this.fAX = 0.0;
+            this.fAY = 0.0;
+            this.fAZ = 0.0;
+            this.fProjX = 0.0;
+            this.fProjY = 0.0;
+            this.fRotX = 0.0;
+            this.fRotZ = 0.0;
+            this.pPrev = null;
+            this.pNext = null;
+            this.fAngle = 0.0;
+            this.fForce = 0.0;
+            this.fGrowDuration = 0.0;
+            this.fWaitDuration = 0.0;
+            this.fShrinkDuration = 0.0;
+            this.fRadiusCurrent = 0.0;
+            this.iFramesAlive = 0;
+            this.bIsDead = false;
+            this.fAlpha = 0.0;
+          }
+
+          fnInit() {
+            this.fAngle = fnRnd() * PI * 2;
+            this.fForce = fnACos(fnRnd2());
+            this.fAlpha = 0;
+            this.bIsDead = false;
+            this.iFramesAlive = 0;
+            this.fX = iRadiusSphere * fnSin(this.fForce) * fnCos(this.fAngle);
+            this.fY = iRadiusSphere * fnSin(this.fForce) * fnSin(this.fAngle);
+            this.fZ = iRadiusSphere * fnCos(this.fForce);
+            this.fVX = fStartVX * this.fX;
+            this.fVY = fStartVY * this.fY;
+            this.fVZ = fStartVZ * this.fZ;
+            this.fGrowDuration = settings.fGrowDuration + fnRnd2() * (settings.fGrowDuration / 4.0);
+            this.fWaitDuration = settings.fWaitDuration + fnRnd2() * (settings.fWaitDuration / 4.0);
+            this.fShrinkDuration = settings.fShrinkDuration + fnRnd2() * (settings.fShrinkDuration / 4.0);
+            this.fAX = 0.0;
+            this.fAY = 0.0;
+            this.fAZ = 0.0;
+          }
+
+          fnUpdate() {
+            if (this.iFramesAlive > this.fGrowDuration + this.fWaitDuration) {
+              this.fVX += this.fAX + fMaxAX * fnRnd2();
+              this.fVY += this.fAY + fMaxAY * fnRnd2();
+              this.fVZ += this.fAZ + fMaxAZ * fnRnd2();
+              this.fX += this.fVX;
+              this.fY += this.fVY;
+              this.fZ += this.fVZ;
+            }
+
+            this.fRotX = fCosAngle * this.fX + fSinAngle * this.fZ;
+            this.fRotZ = -fSinAngle * this.fX + fCosAngle * this.fZ;
+            this.fRadiusCurrent = Math.max(0.01, settings.iPerspective / (settings.iPerspective - this.fRotZ));
+            this.fProjX = this.fRotX * this.fRadiusCurrent + iProjSphereX;
+            this.fProjY = this.fY * this.fRadiusCurrent + iProjSphereY;
+
+            this.iFramesAlive += 1;
+
+            const lifeGrow = this.fGrowDuration;
+            const lifeWait = this.fWaitDuration;
+            const lifeShrink = this.fShrinkDuration;
+
+            if (this.iFramesAlive < lifeGrow) {
+              this.fAlpha = this.iFramesAlive / lifeGrow;
+            } else if (this.iFramesAlive < lifeGrow + lifeWait) {
+              this.fAlpha = 1.0;
+            } else if (this.iFramesAlive < lifeGrow + lifeWait + lifeShrink) {
+              this.fAlpha = (lifeGrow + lifeWait + lifeShrink - this.iFramesAlive) / lifeShrink;
+            } else {
+              this.bIsDead = true;
+            }
+
+            if (this.bIsDead === true) {
+              fnSwapList(this, oRender, oBuffer);
+            }
+
+            this.fAlpha *= fnMin(1.0, fnMax(0.5, this.fRotZ / iRadiusSphere));
+            this.fAlpha = fnMin(1.0, fnMax(0.0, this.fAlpha));
+          }
+        }
+
+        function fnRender() {
+          ctxRender.fillStyle = '#000';
+          ctxRender.fillRect(0, 0, w, h);
+
+          let p = oRender.pFirst;
+          while (p) {
+            ctxRender.fillStyle = 'rgba(' + settings.aColor.join(',') + ',' + p.fAlpha.toFixed(4) + ')';
+            ctxRender.beginPath();
+            ctxRender.arc(p.fProjX, p.fProjY, p.fRadiusCurrent, 0, 2 * PI, false);
+            ctxRender.closePath();
+            ctxRender.fill();
+            p = p.pNext;
+          }
+        }
+
+        function fnNextFrame() {
+          if (window.__bgPaused) {
+            window.requestAnimationFrame(fnNextFrame);
+            return;
+          }
+
+          fAngle = (fAngle + fVX) % (2.0 * PI);
+          fSinAngle = fnSin(fAngle);
+          fCosAngle = fnCos(fAngle);
+
+          for (let i = 0; i < settings.iNewParticlePerFrame; i++) {
+            const p = fnSwapList(oBuffer.pFirst, oBuffer, oRender);
+            p.fnInit();
+          }
+
+          let p = oRender.pFirst;
+          while (p) {
+            const pNext = p.pNext;
+            p.fnUpdate();
+            p = pNext;
+          }
+
+          fnRender();
+          window.requestAnimationFrame(fnNextFrame);
+        }
+
+        const initialParticleCount = Math.min(420, Math.round(settings.iNewParticlePerFrame * 30));
+        for (let i = 0; i < initialParticleCount; i++) {
+          const p = fnSwapList(oBuffer.pFirst, oBuffer, oRender);
+          p.fnInit();
+          p.iFramesAlive = Math.floor(p.fGrowDuration + 1);
+          p.fnUpdate();
+        }
+
+        fnNextFrame();
+      }());
+    </script>
+
+    <div class="container" id="mainCard">
+      <h1>XX，做我女朋友好吗？</h1>
+      <div class="btn-group" id="btnGroup">
+        <button class="btn btn-no" id="btnNo" type="button">再想想</button>
+        <button class="btn btn-yes" id="btnYes" type="button">我愿意</button>
+      </div>
+      <div class="hint" id="hint" aria-live="polite"></div>
+    </div>
+
+    <div class="answer-layer answer-yes-bg" id="yesLayer" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="answer-text">从此以后<br>我的世界里只有你</div>
+    </div>
+
+    <div class="answer-layer answer-no-bg" id="noLayer" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="answer-text">再给我一次机会好吗<br>我会用心对你...</div>
+      <div class="layer-actions">
+        <button class="layer-btn" type="button" data-action="restart">重新选择</button>
+      </div>
+    </div>
+
+    <div class="signature">
+      嘉 && xxx <span class="heart-icon">&#9829;</span>
+    </div>
+  </div>
+
+  <div id="page2" aria-hidden="true">
+    <canvas class="webgl"></canvas>
+    <h1>I Love You</h1>
+    <button id="play-music" type="button" aria-label="Play music">
+      <svg fill="currentColor" viewBox="0 0 512 512" width="100" title="music">
+        <path d="M470.38 1.51L150.41 96A32 32 0 0 0 128 126.51v261.41A139 139 0 0 0 96 384c-53 0-96 28.66-96 64s43 64 96 64 96-28.66 96-64V214.32l256-75v184.61a138.4 138.4 0 0 0-32-3.93c-53 0-96 28.66-96 64s43 64 96 64 96-28.65 96-64V32a32 32 0 0 0-41.62-30.49z" />
+      </svg>
+    </button>
+
+    <script type="x-shader/x-vertex" id="vertexShader">
+      #define M_PI 3.1415926535897932384626433832795
+      uniform float uTime;
+      uniform float uSize;
+      attribute float aScale;
+      attribute vec3 aColor;
+      attribute float random;
+      attribute float random1;
+      attribute float aSpeed;
+      varying vec3 vColor;
+      varying vec2 vUv;
+
+      void main() {
+        float sign = 2.0* (step(random, 0.5) -.5);
+        float t = sign*mod(-uTime *  aSpeed* 0.005  + 10.0*aSpeed*aSpeed, M_PI);
+        float a = pow(t, 2.0) * pow((t - sign * M_PI), 2.0);
+        float radius = 0.14;
+        vec3 myOffset =
+            vec3(t,  1.0, 0.0);
+        myOffset = vec3(radius *16.0 * pow(sin(t), 2.0) * sin(t), radius * (13.0 * cos(t) - 5.0 * cos(2.0 * t) - 2.0 * cos(3.0 * t) - cos(4.0 * t)), .15*(a*(random1 - .5))*sin(abs(10.0*(sin(.2*uTime + .2*random)))*t));
+        vec3 displacedPosition = myOffset;
+        vec4 modelPosition = modelMatrix * vec4(displacedPosition.xyz, 1.0);
+
+        vec4 viewPosition = viewMatrix * modelPosition;
+        viewPosition.xyz += position * aScale * uSize * pow(a, .5) * .5;
+        gl_Position = projectionMatrix * viewPosition;
+
+        vColor = aColor;
+        vUv = uv;
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragmentShader">
+      varying vec3 vColor;
+      varying vec2 vUv;
+
+      void main() {
+        vec2 uv = vUv;
+        vec3 color = vColor;
+        float strength = distance(uv, vec2(0.5));
+        strength *= 2.0;
+        strength = 1.0 - strength;
+        gl_FragColor = vec4(strength * color, 1.0);
+      }
+    </script>
+
+    <script type="x-shader/x-vertex" id="vertexShader1">
+      #define M_PI 3.1415926535897932384626433832795
+      uniform float uTime;
+      uniform float uSize;
+      attribute float aScale;
+      attribute vec3 aColor;
+      attribute float phi;
+      attribute float random;
+      attribute float random1;
+      varying vec3 vColor;
+      varying vec2 vUv;
+
+      void main() {
+        float t = 0.01 * uTime + 12.0;
+        float angle = phi;
+        t = mod((-uTime + 100.0) * 0.06* random1 + random *2.0 * M_PI , 2.0 * M_PI);
+        vec3 myOffset = vec3(5.85*cos(angle * (t )), 2.0*(t - M_PI), 3.0*sin(angle * (t )/t));
+        vec4 modelPosition = modelMatrix * vec4(myOffset, 1.0);
+        vec4 viewPosition = viewMatrix * modelPosition;
+        viewPosition.xyz += position * aScale * uSize;
+        gl_Position = projectionMatrix * viewPosition;
+
+        vColor = aColor;
+        vUv = uv;
+      }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragmentShader1">
+      uniform sampler2D uTex;
+      varying vec3 vColor;
+      varying vec2 vUv;
+
+      void main() {
+        vec2 uv = vUv;
+        vec3 color = vColor;
+        float strength = distance(uv, vec2(0.5, .65));
+        strength *= 2.0;
+        strength = 1.0 - strength;
+        vec3 texture = texture2D(uTex, uv).rgb;
+        gl_FragColor = vec4(texture * color * (strength + .3), 1.);
+      }
+    </script>
+  </div>
+
+  <script>
+    const page1 = document.getElementById('page1');
+    const page2 = document.getElementById('page2');
+
+    const btnNo = document.getElementById('btnNo');
+    const btnYes = document.getElementById('btnYes');
+    const btnGroup = document.getElementById('btnGroup');
+    const mainCard = document.getElementById('mainCard');
+    const yesLayer = document.getElementById('yesLayer');
+    const noLayer = document.getElementById('noLayer');
+    const hint = document.getElementById('hint');
+    const confettiCanvas = document.getElementById('confettiCanvas');
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let noTryCount = 0;
+    let noEvadeCount = 0;
+    let yesClickCount = 0;
+    let resetTimer = null;
+    let lastEvadeAt = 0;
+    let nextPageTimer = null;
+    let nextPageInitialized = false;
+
+    const messages = [
+      "再想想",
+      "真的不要吗？",
+      "再考虑一下嘛",
+      "给个机会好不好",
+      "我会对你很好的",
+      "求求你了"
+    ];
+
+    let confettiFx = null;
+    function getConfettiFx() {
+      if (confettiFx) return confettiFx;
+      if (typeof confetti !== 'function') return null;
+      confettiFx = confettiCanvas
+        ? confetti.create(confettiCanvas, { resize: true, useWorker: true })
+        : confetti;
+      return confettiFx;
+    }
+
+    function setHint(text) {
+      hint.textContent = text || '';
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function setButtonTranslate(button, x, y) {
+      button.style.setProperty('--tx', String(x) + 'px');
+      button.style.setProperty('--ty', String(y) + 'px');
+    }
+
+    function closeLayers() {
+      yesLayer.classList.remove('active-layer');
+      noLayer.classList.remove('active-layer');
+      yesLayer.setAttribute('aria-hidden', 'true');
+      noLayer.setAttribute('aria-hidden', 'true');
+    }
+
+    function openLayer(layerEl) {
+      clearTimeout(resetTimer);
+      closeLayers();
+
+      layerEl.classList.add('active-layer');
+      layerEl.setAttribute('aria-hidden', 'false');
+
+      mainCard.style.opacity = '0';
+      mainCard.style.pointerEvents = 'none';
+
+      const restartButton = layerEl.querySelector('[data-action="restart"]');
+      if (restartButton) restartButton.focus({ preventScroll: true });
+    }
+
+    function resetAll() {
+      clearTimeout(resetTimer);
+      clearTimeout(nextPageTimer);
+      closeLayers();
+
+      window.__bgPaused = false;
+
+      if (page2) {
+        page2.style.display = 'none';
+        page2.setAttribute('aria-hidden', 'true');
+      }
+      if (page1) page1.style.display = '';
+      if (confettiCanvas) confettiCanvas.style.display = '';
+
+      mainCard.style.display = '';
+      mainCard.style.opacity = '1';
+      mainCard.style.pointerEvents = '';
+
+      btnYes.style.pointerEvents = '';
+      btnNo.style.pointerEvents = '';
+
+      btnNo.classList.remove('disabled');
+      btnNo.textContent = messages[0];
+      btnNo.style.opacity = '';
+      btnNo.style.cursor = '';
+
+      btnNo.style.removeProperty('--scale');
+      btnYes.style.removeProperty('--scale');
+      setButtonTranslate(btnNo, 0, 0);
+      setButtonTranslate(btnYes, 0, 0);
+
+      noTryCount = 0;
+      noEvadeCount = 0;
+      yesClickCount = 0;
+      lastEvadeAt = 0;
+      setHint('');
+    }
+
+    async function initNextPage() {
+      if (nextPageInitialized) return;
+      nextPageInitialized = true;
+      if (!page2) return;
+
+      const sourceEl = document.getElementById('page2ModuleSource');
+      if (!sourceEl) return;
+
+      const url = URL.createObjectURL(new Blob([sourceEl.textContent], { type: 'text/javascript' }));
+      try {
+        const mod = await import(url);
+        if (mod && typeof mod.initWithLovePage === 'function') {
+          await mod.initWithLovePage(page2);
+        }
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function goToNextPage() {
+      if (!page1 || !page2) return;
+      window.__bgPaused = true;
+      page1.style.display = 'none';
+      page2.style.display = 'block';
+      page2.setAttribute('aria-hidden', 'false');
+      if (confettiCanvas) confettiCanvas.style.display = 'none';
+      window.location.hash = '#with-love';
+      initNextPage().catch(() => {});
+    }
+
+    function evadeNoButton() {
+      if (prefersReducedMotion) return false;
+      if (btnNo.classList.contains('disabled')) return true;
+
+      noEvadeCount += 1;
+      lastEvadeAt = Date.now();
+
+      btnNo.textContent = messages[Math.min(noEvadeCount, messages.length - 1)];
+
+      const groupRect = btnGroup.getBoundingClientRect();
+      const noRect = btnNo.getBoundingClientRect();
+
+      const maxX = Math.max(8, (groupRect.width - noRect.width) / 2 - 8);
+      const maxY = Math.max(8, (groupRect.height - noRect.height) / 2 - 8);
+
+      const x = clamp(rand(-maxX, maxX), -maxX, maxX);
+      const y = clamp(rand(-maxY, maxY), -maxY, maxY);
+
+      setButtonTranslate(btnNo, x, y);
+      btnNo.classList.add('shake');
+      setTimeout(() => btnNo.classList.remove('shake'), 320);
+
+      btnYes.style.setProperty('--scale', String(Math.min(1.0 + noEvadeCount * 0.05, 1.22)));
+
+      const hints = [
+        "别急着拒绝嘛…",
+        "你确定要点它吗？",
+        "它好像不太想被点到…",
+        "那我把「我愿意」放大一点点？",
+        "再试一次试试？"
+      ];
+      setHint(hints[Math.min(noEvadeCount - 1, hints.length - 1)]);
+
+      if (noEvadeCount >= 6) {
+        btnNo.classList.add('disabled');
+        setHint("它已经累了…要不，换一个按钮？");
+      }
+
+      return true;
+    }
+
+    btnNo.addEventListener('pointerenter', () => {
+      if (noEvadeCount < 6) evadeNoButton();
+    });
+
+    btnNo.addEventListener('pointerdown', (e) => {
+      if (noEvadeCount < 6) {
+        const didEvade = evadeNoButton();
+        if (didEvade) e.preventDefault();
+      }
+    });
+
+    btnNo.addEventListener('click', () => {
+      noTryCount += 1;
+
+      if (!prefersReducedMotion && Date.now() - lastEvadeAt < 450) return;
+
+      if (!prefersReducedMotion && noEvadeCount < 3) {
+        btnNo.classList.add('shake');
+        setTimeout(() => btnNo.classList.remove('shake'), 500);
+        setHint("再多考虑一下嘛~");
+        return;
+      }
+
+      openLayer(noLayer);
+      resetTimer = setTimeout(() => {
+        resetAll();
+        setHint("刚才系统出现了小故障…已重置，请重新选择。");
+      }, 6000);
+    });
+
+    btnYes.addEventListener('click', () => {
+      yesClickCount += 1;
+      btnYes.style.pointerEvents = 'none';
+      btnNo.style.pointerEvents = 'none';
+
+      const fx = getConfettiFx();
+      if (yesClickCount === 1 && fx) {
+        fx({
+          particleCount: 50,
+          spread: 70,
+          origin: { y: 0.7 },
+          colors: ['#6d7cff', '#9a62ff', '#ff5ab6', '#FFD700']
+        });
+      }
+
+      setTimeout(() => startCelebration(), 350);
+    });
+
+    function startCelebration() {
+      fireWorks();
+      setTimeout(() => openLayer(yesLayer), 260);
+      setTimeout(() => { mainCard.style.display = 'none'; }, 900);
+      clearTimeout(nextPageTimer);
+      nextPageTimer = setTimeout(goToNextPage, 5200);
+    }
+
+    function fireWorks() {
+      const fx = getConfettiFx();
+      if (!fx) return;
+
+      const duration = 5 * 1000;
+      const end = Date.now() + duration;
+      const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#FFD700', '#FF69B4', '#ffffff'];
+
+      (function frame() {
+        fx({
+          particleCount: 8,
+          angle: 60,
+          spread: 80,
+          origin: { x: 0, y: 0.8 },
+          colors: colors,
+          ticks: 250,
+          gravity: 1.2,
+          decay: 0.94,
+          startVelocity: 35,
+          shapes: ['circle', 'square'],
+          scalar: 1.2
+        });
+
+        fx({
+          particleCount: 8,
+          angle: 120,
+          spread: 80,
+          origin: { x: 1, y: 0.8 },
+          colors: colors,
+          ticks: 250,
+          gravity: 1.2,
+          decay: 0.94,
+          startVelocity: 35,
+          shapes: ['circle', 'square'],
+          scalar: 1.2
+        });
+
+        if (Math.random() < 0.4) {
+          fx({
+            particleCount: 20,
+            spread: 360,
+            origin: {
+              x: Math.random() * 0.6 + 0.2,
+              y: Math.random() * 0.5 + 0.2
+            },
+            colors: colors,
+            ticks: 180,
+            shapes: ['star', 'circle'],
+            scalar: 1.5
+          });
+        }
+
+        if (Date.now() < end) requestAnimationFrame(frame);
+      }());
+    }
+
+    document.body.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (target.matches('[data-action="restart"]')) resetAll();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && mainCard.style.display !== 'none') btnYes.click();
+      if (e.key === 'Escape') resetAll();
+    });
+  </script>
+  <script type="text/plain" id="page2ModuleSource">
+import * as THREE from "https://cdn.skypack.dev/three@0.135.0";
+import { gsap } from "https://cdn.skypack.dev/gsap@3.8.0";
+import { GLTFLoader } from "https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader";
+
+export function initWithLovePage(page2) {
+  if (window.__withLoveWorld) return;
+  const root = page2 || document;
+  const canvas = root.querySelector("canvas.webgl");
+  if (!canvas) return;
+  const world = new World({
+    canvas,
+    cameraPosition: { x: 0, y: 0, z: 4.5 }
+  });
+  window.__withLoveWorld = world;
+  world.loop();
+}
+
+class World {
+  constructor({
+    canvas,
+    width,
+    height,
+    cameraPosition,
+    fieldOfView = 75,
+    nearPlane = 0.1,
+    farPlane = 100
+  }) {
+    this.parameters = {
+      count: 1500,
+      max: 12.5 * Math.PI,
+      a: 2,
+      c: 4.5
+    };
+    this.textureLoader = new THREE.TextureLoader();
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x16000a);
+    this.clock = new THREE.Clock();
+    this.data = 0;
+    this.time = { current: 0, t0: 0, t1: 0, t: 0, frequency: 0.0005 };
+    this.angle = { x: 0, z: 0 };
+    this.width = width || window.innerWidth;
+    this.height = height || window.innerHeight;
+    this.aspectRatio = this.width / this.height;
+    this.fieldOfView = fieldOfView;
+    this.camera = new THREE.PerspectiveCamera(
+      fieldOfView,
+      this.aspectRatio,
+      nearPlane,
+      farPlane
+    );
+    this.camera.position.set(
+      cameraPosition.x,
+      cameraPosition.y,
+      cameraPosition.z
+    );
+    this.scene.add(this.camera);
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true
+    });
+    this.pixelRatio = Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(this.pixelRatio);
+    this.renderer.setSize(this.width, this.height);
+    this.addToScene();
+    this.addButton();
+    this.render();
+    this.listenToResize();
+    this.listenToMouseMove();
+  }
+
+  render() {
+    this.renderer.render(this.scene, this.camera);
+    this.composer && this.composer.render();
+  }
+
+  loop() {
+    this.time.elapsed = this.clock.getElapsedTime();
+    this.time.delta = Math.min(
+      60,
+      (this.time.current - this.time.elapsed) * 1000
+    );
+    if (this.analyser && this.isRunning) {
+      this.time.t = this.time.elapsed - this.time.t0 + this.time.t1;
+      this.data = this.analyser.getAverageFrequency();
+      this.data *= this.data / 2000;
+      this.angle.x += this.time.delta * 0.001 * 0.63;
+      this.angle.z += this.time.delta * 0.001 * 0.39;
+      const justFinished = this.isRunning && !this.sound.isPlaying;
+      if (justFinished) {
+        this.time.t1 = this.time.t;
+        this.audioBtn.disabled = false;
+        this.isRunning = false;
+        const tl = gsap.timeline();
+        this.angle.x = 0;
+        this.angle.z = 0;
+        tl.to(this.camera.position, {
+          x: 0,
+          z: 4.5,
+          duration: 4,
+          ease: "expo.in"
+        });
+        tl.to(this.audioBtn, {
+          opacity: () => 1,
+          duration: 1,
+          ease: "power1.out"
+        });
+      } else {
+        this.camera.position.x = Math.sin(this.angle.x) * this.parameters.a;
+        this.camera.position.z = Math.min(
+          Math.max(Math.cos(this.angle.z) * this.parameters.c, 1.75),
+          6.5
+        );
+      }
+    }
+    this.camera.lookAt(this.scene.position);
+    if (this.heartMaterial) {
+      this.heartMaterial.uniforms.uTime.value +=
+        this.time.delta * this.time.frequency * (1 + this.data * 0.2);
+    }
+    if (this.model) {
+      this.model.rotation.y -= 0.0005 * this.time.delta * (1 + this.data);
+    }
+    if (this.snowMaterial) {
+      this.snowMaterial.uniforms.uTime.value +=
+        this.time.delta * 0.0004 * (1 + this.data);
+    }
+    this.render();
+
+    this.time.current = this.time.elapsed;
+    requestAnimationFrame(this.loop.bind(this));
+  }
+
+  listenToResize() {
+    window.addEventListener("resize", () => {
+      this.width = window.innerWidth;
+      this.height = window.innerHeight;
+      this.camera.aspect = this.width / this.height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(this.width, this.height);
+    });
+  }
+
+  listenToMouseMove() {
+    window.addEventListener("mousemove", (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
+      gsap.to(this.camera.position, {
+        x: gsap.utils.mapRange(0, window.innerWidth, 0.2, -0.2, x),
+        y: gsap.utils.mapRange(0, window.innerHeight, 0.2, -0.2, -y)
+      });
+    });
+  }
+
+  addHeart() {
+    this.heartMaterial = new THREE.ShaderMaterial({
+      fragmentShader: document.getElementById("fragmentShader").textContent,
+      vertexShader: document.getElementById("vertexShader").textContent,
+      uniforms: {
+        uTime: { value: 0 },
+        uSize: { value: 0.2 },
+        uTex: {
+          value: new THREE.TextureLoader().load(
+            "https://assets.codepen.io/74321/heart.png"
+          )
+        }
+      },
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
+    const count = this.parameters.count;
+    const scales = new Float32Array(count * 1);
+    const colors = new Float32Array(count * 3);
+    const speeds = new Float32Array(count);
+    const randoms = new Float32Array(count);
+    const randoms1 = new Float32Array(count);
+    const colorChoices = [
+      "white",
+      "red",
+      "pink",
+      "crimson",
+      "hotpink",
+      "green"
+    ];
+
+    const squareGeometry = new THREE.PlaneGeometry(1, 1);
+    this.instancedGeometry = new THREE.InstancedBufferGeometry();
+    Object.keys(squareGeometry.attributes).forEach((attr) => {
+      this.instancedGeometry.attributes[attr] = squareGeometry.attributes[attr];
+    });
+    this.instancedGeometry.index = squareGeometry.index;
+    this.instancedGeometry.maxInstancedCount = count;
+
+    for (let i = 0; i < count; i++) {
+      const i3 = 3 * i;
+      randoms[i] = Math.random();
+      randoms1[i] = Math.random();
+      scales[i] = Math.random() * 0.35;
+      const colorIndex = Math.floor(Math.random() * colorChoices.length);
+      const color = new THREE.Color(colorChoices[colorIndex]);
+      colors[i3 + 0] = color.r;
+      colors[i3 + 1] = color.g;
+      colors[i3 + 2] = color.b;
+      speeds[i] = Math.random() * this.parameters.max;
+    }
+    this.instancedGeometry.setAttribute(
+      "random",
+      new THREE.InstancedBufferAttribute(randoms, 1, false)
+    );
+    this.instancedGeometry.setAttribute(
+      "random1",
+      new THREE.InstancedBufferAttribute(randoms1, 1, false)
+    );
+    this.instancedGeometry.setAttribute(
+      "aScale",
+      new THREE.InstancedBufferAttribute(scales, 1, false)
+    );
+    this.instancedGeometry.setAttribute(
+      "aSpeed",
+      new THREE.InstancedBufferAttribute(speeds, 1, false)
+    );
+    this.instancedGeometry.setAttribute(
+      "aColor",
+      new THREE.InstancedBufferAttribute(colors, 3, false)
+    );
+    this.heart = new THREE.Mesh(this.instancedGeometry, this.heartMaterial);
+    this.scene.add(this.heart);
+  }
+
+  addToScene() {
+    this.addModel();
+    this.addHeart();
+    this.addSnow();
+  }
+
+  async addModel() {
+    this.model = await this.loadObj("https://assets.codepen.io/74321/heart.glb");
+    if (!this.model) return;
+    this.model.scale.set(0.01, 0.01, 0.01);
+    this.model.material = new THREE.MeshMatcapMaterial({
+      matcap: this.textureLoader.load(
+        "https://assets.codepen.io/74321/3.png",
+        () => {
+          gsap.to(this.model.scale, {
+            x: 0.35,
+            y: 0.35,
+            z: 0.35,
+            duration: 1.5,
+            ease: "Elastic.easeOut"
+          });
+        }
+      ),
+      color: "#ff89aC"
+    });
+    this.scene.add(this.model);
+  }
+
+  addButton() {
+    this.audioBtn = document.getElementById("play-music");
+    if (!this.audioBtn) return;
+    this.audioBtn.addEventListener("click", () => {
+      this.audioBtn.disabled = true;
+      if (this.analyser) {
+        this.sound.play();
+        this.time.t0 = this.time.elapsed;
+        this.data = 0;
+        this.isRunning = true;
+        gsap.to(this.audioBtn, {
+          opacity: 0,
+          duration: 1,
+          ease: "power1.out"
+        });
+      } else {
+        this.loadMusic().then(() => {});
+      }
+    });
+  }
+
+  loadObj(path) {
+    const loader = new GLTFLoader();
+    return new Promise((resolve) => {
+      loader.load(
+        path,
+        (response) => {
+          resolve(response.scene.children[0]);
+        },
+        () => {},
+        () => {
+          resolve(null);
+        }
+      );
+    });
+  }
+
+  loadMusic() {
+    return new Promise((resolve) => {
+      const listener = new THREE.AudioListener();
+      this.camera.add(listener);
+      this.sound = new THREE.Audio(listener);
+      const audioLoader = new THREE.AudioLoader();
+      audioLoader.load(
+        "https://assets.codepen.io/74321/ukulele.mp3",
+        (buffer) => {
+          this.sound.setBuffer(buffer);
+          this.sound.setLoop(false);
+          this.sound.setVolume(0.5);
+          this.sound.play();
+          this.analyser = new THREE.AudioAnalyser(this.sound, 32);
+          this.isRunning = true;
+          resolve();
+        },
+        (progress) => {
+          if (!progress.total || !this.audioBtn) return;
+          gsap.to(this.audioBtn, {
+            opacity: () => 1 - progress.loaded / progress.total,
+            duration: 1,
+            ease: "power1.out"
+          });
+        },
+        () => resolve()
+      );
+    });
+  }
+
+  addSnow() {
+    this.snowMaterial = new THREE.ShaderMaterial({
+      fragmentShader: document.getElementById("fragmentShader1").textContent,
+      vertexShader: document.getElementById("vertexShader1").textContent,
+      uniforms: {
+        uTime: { value: 0 },
+        uSize: { value: 0.3 },
+        uTex: {
+          value: new THREE.TextureLoader().load(
+            "https://assets.codepen.io/74321/heart.png"
+          )
+        }
+      },
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
+    const count = 550;
+    const scales = new Float32Array(count * 1);
+    const colors = new Float32Array(count * 3);
+    const phis = new Float32Array(count);
+    const randoms = new Float32Array(count);
+    const randoms1 = new Float32Array(count);
+    const colorChoices = ["red", "pink", "hotpink", "green"];
+
+    const squareGeometry = new THREE.PlaneGeometry(1, 1);
+    this.instancedGeometrySnow = new THREE.InstancedBufferGeometry();
+    Object.keys(squareGeometry.attributes).forEach((attr) => {
+      this.instancedGeometrySnow.attributes[attr] = squareGeometry.attributes[attr];
+    });
+    this.instancedGeometrySnow.index = squareGeometry.index;
+    this.instancedGeometrySnow.maxInstancedCount = count;
+
+    for (let i = 0; i < count; i++) {
+      const phi = (Math.random() - 0.5) * 10;
+      const i3 = 3 * i;
+      phis[i] = phi;
+      randoms[i] = Math.random();
+      randoms1[i] = Math.random();
+      scales[i] = Math.random() * 0.35;
+      const colorIndex = Math.floor(Math.random() * colorChoices.length);
+      const color = new THREE.Color(colorChoices[colorIndex]);
+      colors[i3 + 0] = color.r;
+      colors[i3 + 1] = color.g;
+      colors[i3 + 2] = color.b;
+    }
+    this.instancedGeometrySnow.setAttribute(
+      "phi",
+      new THREE.InstancedBufferAttribute(phis, 1, false)
+    );
+    this.instancedGeometrySnow.setAttribute(
+      "random",
+      new THREE.InstancedBufferAttribute(randoms, 1, false)
+    );
+    this.instancedGeometrySnow.setAttribute(
+      "random1",
+      new THREE.InstancedBufferAttribute(randoms1, 1, false)
+    );
+    this.instancedGeometrySnow.setAttribute(
+      "aScale",
+      new THREE.InstancedBufferAttribute(scales, 1, false)
+    );
+    this.instancedGeometrySnow.setAttribute(
+      "aColor",
+      new THREE.InstancedBufferAttribute(colors, 3, false)
+    );
+    this.snow = new THREE.Mesh(this.instancedGeometrySnow, this.snowMaterial);
+    this.scene.add(this.snow);
+  }
+}
+  </script>
+</body>
+</html>
+
